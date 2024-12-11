@@ -6,6 +6,8 @@ import todoRoutes from './routes/todos.js'
 const app = express()
 app.use(bodyParser.json())
 
+app.use(express.urlencoded({extended: true}))
+
 app.use('/todos', todoRoutes)
 
 app.listen(3009, () => {

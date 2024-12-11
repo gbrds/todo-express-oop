@@ -2,7 +2,7 @@ import { Todo } from '../models/todo.js'
 
 class todoController {
     constructor() {
-        //hond todo objekts in array
+        //hold todo objekts in array
         this.TODOS = []
     }
     
@@ -22,4 +22,4 @@ class todoController {
     }
 }
 
-export const TodoController = new todoController()
+export const TodoController = new todoController();
