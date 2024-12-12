@@ -1,12 +1,13 @@
+import { filemanager } from '../files.js'
 import { Todo } from '../models/todo.js'
 
 class todoController {
     constructor() {
-        //hold todo objekts in array
-        this.TODOS = []
+        // try to get data form file and init tasks array
+        this.initTodos = []
     }
     
-    createTodo(req, res){
+    async createTodo(req, res){
         //get data from post request
         const task = req.body.task
         //create new object via Todo model
@@ -14,11 +15,23 @@ class todoController {
         const newTodo = new Todo(Math.random().toString(), task)
         //add new todo to todos array
         this.TODOS.push(newTodo)
+        // save data to file
+        await filemanager.writeFile('./data/todos.json', this.TODOS)
         //create a correct response
         res.json({
             message: 'created new todo object',
             newTask: newTodo
         })
+    }
+
+    async initTodos(){
+        const todosData = await fileManager.readfile('./data/todos.json')
+        // if data is ok - add file content to array
+        if(todosData !== null){
+            this.TODOS = todosData
+        } else {
+            this.TODOS = [] // if we do not get data form file create an empty array
+        }
     }
 
     getTodos(req, res){
