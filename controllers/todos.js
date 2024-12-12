@@ -4,7 +4,7 @@ import { Todo } from '../models/todo.js'
 class todoController {
     constructor() {
         // try to get data form file and init tasks array
-        this.initTodos = []
+        this.initTodos();
     }
     
     async createTodo(req, res){
@@ -25,7 +25,7 @@ class todoController {
     }
 
     async initTodos(){
-        const todosData = await fileManager.readfile('./data/todos.json')
+        const todosData = await filemanager.readFile('./data/todos.json')   
         // if data is ok - add file content to array
         if(todosData !== null){
             this.TODOS = todosData
@@ -38,7 +38,7 @@ class todoController {
         res.json({tasks: this.TODOS})
     }
 
-    updateTodo(req, res){
+    async updateTodo(req, res){
         // get id from url params
         const todoId = req.params.id
         // get the updated task name from requested body (like from data)
@@ -47,23 +47,30 @@ class todoController {
         const todoIndex = this.TODOS.findIndex((todo) => todo.id === todoId)
         // if url params id is not correct - send error message
         if (todoIndex < 0){
-            res.json({
-                message: 'Could not find todo with such index'
+            return res.status(404).json({
+                message: 'Todo not found',
             })
-            throw new Error('Could not find todo')
         }
         // if id is ok - update todo
         // for update create element with the same id and new task
         // and save it in the same array element by this index
-        this.TODOS[todoIndex] = new Todo(this.TODOS[todoIndex].id, updatedTask)
+        this.TODOS[todoIndex].task = updatedTask;
         // show updated info
-        res.json({
-            message: 'Updated todo',
-            updateTask: this.TODOS[todoIndex]
-        })
+        try {
+            await filemanager.writeFile('./data/todos.json', this.TODOS)
+            res.json({
+                message: 'Updated todo',
+                updatedTask: this.TODOS[todoIndex],
+            })
+        } catch (error) {
+            res.status(500).json ({
+                message: 'Failed to update todo',
+                error: error.message,
+            })
+        }
     }
 
-    deleteTodo(req, res){
+    async deleteTodo(req, res){
         const todoId = req.params.id;
         const todoIndex = this.TODOS.findIndex((todo) => todo.id === todoId);
         if (todoIndex < 0) {
@@ -72,10 +79,18 @@ class todoController {
             });
         }
         const deletedTodo = this.TODOS.splice(todoIndex, 1)[0];
-        res.json({
-            message: 'Deleted todo',
-            deletedTask: deletedTodo,
-        })
+        try {
+            await filemanager.writeFile('./data/todos.json', this.TODOS)
+            res.json({
+                message: 'Deleted todo',
+                deletedTask: deletedTodo,
+            })
+        } catch (error) {
+            res.status(500).json({
+                message: 'Failed to delete todo',
+                error: error.message,
+            })
+        }
     }
 }
 
